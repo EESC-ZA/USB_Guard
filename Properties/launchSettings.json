@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "windows_app": {
+      "commandName": "Project",
+      "commandLineArgs": "-tmron 0 4 20\r\n-pwd 12345"
+    }
+  }
+}

@@ -68,9 +68,20 @@ namespace windows_app
             RegisterDevices();
             dcount = totDrives;
             BGWorker.RunWorkerAsync();
+            initSettingsFile();
 
         }
 
+        private void initSettingsFile()
+        {
+            
+            using (TextWriter tw = File.CreateText("RunTimectrlFile.bin"))
+            {
+                tw.WriteLine("-----------running----------");
+                tw.Close();
+            }
+            
+        }
         private void Server_DataAvailalble(object sender, DataAvailableEventArgs e)
         {
             serMsgs = e.Data.ToString();
@@ -222,12 +233,24 @@ namespace windows_app
                 {
                     pictureButton.Image = Properties.Resources.btnon;
                     isRunning = false;
+
+                    if (isRunning)
+                    {
+                        Activelbl.ForeColor = Color.DarkCyan;
+                        Activelbl.Text = "Activated,";
+                    }
+                    else
+                    {
+                        Activelbl.ForeColor = Color.Red;
+                        Activelbl.Text = "Deactivated,";
+                    }
                 }
             
         }
 
         private void StartTimer_Tick(object sender, EventArgs e)
         {
+
             string th = "", tm = "", ts = "";
             if(tmronHours < 10) { th = "0"; }
             if (tmronMinutes < 10) { tm = "0"; }
@@ -245,7 +268,7 @@ namespace windows_app
             {
                 Hide();
                 TimerCount = -2;
-            }          
+            }
         }
 
         private void richTextBox1_TextChanged(object sender, EventArgs e)
@@ -292,6 +315,19 @@ namespace windows_app
         private void BGWorker_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
         {
 
+            if (tmronSeconds % 10 == 0)
+            {
+                using (TextReader tr = File.OpenText("RunTimectrlFile.bin"))
+                {
+                    string txt  = tr.ReadToEnd().Trim().ToLower();
+                    if (txt == "close "+this.password)
+                    {
+                        Close();
+                    }   
+                    tr.Close();
+                }
+            }
+
             if (isRunning)
             {
                 Activelbl.ForeColor = Color.DarkCyan;
@@ -335,7 +371,7 @@ namespace windows_app
 
         private void Pwd_FormClosing(object? sender, FormClosingEventArgs e)
         {
-
+            
             if (pwd != null)
             if(pwd.passCorrect)
             {
@@ -346,8 +382,18 @@ namespace windows_app
         }
 
         private void USBGUARD_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            
+        {   try
+            {
+                using (TextWriter tw = File.CreateText("RunTimectrlFile.bin"))
+                {
+                    tw.WriteLine("-----------Stopped--------");
+                    tw.Close();
+                }
+            } catch(Exception ex)
+            {
+
+            }
+
         }
 
         private void USBGUARD_Load(object sender, EventArgs e)
